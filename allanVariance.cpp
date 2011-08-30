@@ -56,8 +56,8 @@ int allanVariance(char* inputFile,char* outputFile,int sampleFreq)
     cout << "Data mean = " << meanOfData << endl << endl;
 
     //compute time and length of tau vector
-    T =  N/sampleFreq;
-    tauLength = T/2;
+    T =  N/sampleFreq;  // duration of data in seconds
+    tauLength = T/2;	// number of tau values to calculate for
 
     //display program parameters
     //printf("sum = %Lf\n",sumOfData);
@@ -70,13 +70,14 @@ int allanVariance(char* inputFile,char* outputFile,int sampleFreq)
     
 
     //create arrays used in Allan Variance computation
-    int * tau = new int [tauLength];
-    int * L = new int [tauLength];	
-    int * M = new int [T];	
+    int * tau = new int [tauLength]; // array of averaging window times
+    int * L = new int [tauLength];	// 
+    int * M = new int [T];	// 
     double * cluster = new double [T];	
     double * delta = new double [T];
     double * sigma_tau = new double [tauLength];
-    time_t lastTime=time(NULL);
+	double * sigma_tau_err = new double [tauLength];
+	time_t lastTime=time(NULL);
     time_t curTime;
 
     cout << "Starting calculation." << endl;
@@ -85,12 +86,11 @@ int allanVariance(char* inputFile,char* outputFile,int sampleFreq)
     {
 
         progress = (j/(tauLength-1))*100;
-        tau[j] = j+1;
+        tau[j] = j+1;  // length of integration window
         L[j] = sampleFreq*(tau[j]);
         M[j] =  T/(tau[j]);
 
         curTime = time(NULL);
-        //cout << curTime << "," << lastTime << endl;
         if ((curTime-lastTime)>5) {
             cout << "\rtau = " << tau[j] << " of " << tauLength;
             cout.flush();
@@ -113,24 +113,29 @@ int allanVariance(char* inputFile,char* outputFile,int sampleFreq)
             }
         }
 
+		// sum up the square of the numbers in the bin
         for(k=0;k<(M[j]-1);k++)
         {	
-         num += delta[k]*delta[k];
+			num += delta[k]*delta[k];
         }
 
+		// calculate two-sample variance for this tau
         sigma_tau[j]=sqrt(num/(2*(M[j] - 1))); 
         num = 0;
 
+		// calculate error in variance calculation
+		sigma_tau_err[j]=sigma_tau[j]/sqrt((double)M[j]+1.0);
 
     }
     
     cout << endl << "Calculations complete.  Writing output to: " << endl;
     cout << outputFile << endl;
     //open write file
+	// format: 1st column = tau, 2nd column = variance, 3rd column = error bounds on the variance
     ofstream fout(outputFile);
     for(j=0;j<tauLength;j++)
     {
-        fout << tau[j] << " " << sigma_tau[j] << endl;
+        fout << tau[j] << " " << sigma_tau[j] << " " << sigma_tau_err[j] << endl;
         //fprintf(output,"%d %f\n",tau[j],sigma_tau[j]);
     }
     //close write file
