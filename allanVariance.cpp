@@ -32,15 +32,21 @@ int allanVariance(char* inputFile,char* outputFile,int sampleFreq)
     //Read in file to size
     N = std::count(std::istreambuf_iterator<char>(fin), 
              std::istreambuf_iterator<char>(), '\n'); 
+	fin.clear();
+	fin.seekg(0, ios::beg);
+
     //create an array the size of the data read
     double * data = new double [N];
 
     cout << "Read in " << N << " values from input file." << endl << endl;
     
+	cout << "Reading and averaging data..." << endl;
     //Read in, sum, and compute the mean of the data in the input file
-    while (fin.good())
+    while (!fin.eof())
     {
-        fin >> data[k];
+		double temp;
+        fin >> temp;
+		data[k]=temp;
         sumOfData = sumOfData + data[k];
         k = k+1;
     }
