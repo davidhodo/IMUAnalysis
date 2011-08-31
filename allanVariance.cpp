@@ -57,7 +57,10 @@ int allanVariance(char* inputFile,char* outputFile,int sampleFreq)
 
     //compute time and length of tau vector
     T =  N/sampleFreq;  // duration of data in seconds
-    tauLength = T/2;	// number of tau values to calculate for
+	double maxTau=T/2;	// maximum averaging window size
+	tauLength=9*log10(maxTau)-1;
+    //tauLength = (T/2);	// number of tau values to calculate for
+	//tauLength=T/4;
 
     //display program parameters
     //printf("sum = %Lf\n",sumOfData);
@@ -86,7 +89,24 @@ int allanVariance(char* inputFile,char* outputFile,int sampleFreq)
     {
 
         progress = (j/(tauLength-1))*100;
-        tau[j] = j+1;  // length of integration window
+        // increment tau on a log scale
+		int multiplier=((j)%9)+1;
+		//if (multiplier==0)
+		//	multiplier=1;
+		//int multiplier;
+		//if (temp==0)
+		//	multiplier=1;
+		//else if (temp==1)
+		//	multiplier=4;
+		//else if (temp==2)
+		//	multiplier=7;
+		temp=pow(10.0,j/9)*multiplier;
+		tau[j]=temp;
+        //tau[j] = j+1;  // length of integration window
+		//if (j==0)
+		//	tau[j]=1;
+		//else
+		//	tau[j]=2*j;
         L[j] = sampleFreq*(tau[j]);
         M[j] =  T/(tau[j]);
 
